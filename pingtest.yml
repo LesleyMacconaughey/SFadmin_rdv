@@ -1,0 +1,6 @@
+---
+- hosts: all #Применить ко всем хостам
+  become: true #Выполнение от имени суперюзера
+  tasks:
+          - name: pingtest
+            ping:

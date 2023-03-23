@@ -1,0 +1,49 @@
+---
+- hosts: all
+  become: true
+  tasks:
+          - name: Install zabbix agent on RH family
+            ansible.builtin.yum:
+                    name=zabbix-agent
+                    state=present
+            when:
+                    ansible_os_family == "RedHat"
+            notify:
+                    - zabbix-agent systemd
+          
+          - name: Copying conf on RH family
+            template:
+                    src: /etc/ansible/playbooks/template/zabbix_agentd.conf.rh.template
+                    dest: /etc/zabbix_agentd.conf
+                    mode: 0644
+            when:
+                    ansible_os_family == "RedHat"
+
+          - name: Install zabbix-agent on Debian family
+            ansible.builtin.apt:
+                    name: zabbix-agent
+                    state: present
+            when:
+                    ansible_os_family == "Debian"
+            notify:
+                    - zabbix-agent systemd
+
+          - name: Copying conf on Debian family
+            template:
+                    src: /etc/ansible/playbooks/template/zabbix_agentd.conf.deb.template
+                    dest: /etc/zabbix/zabbix_agentd.conf
+                    mode: 0644
+            when:
+                    ansible_os_family == "Debian"
+          
+          - name: Restart zabbix
+            service:
+                    name: zabbix-agent
+                    state: restarted
+
+  handlers:
+          - name: zabbix-agent systemd
+            systemd:
+                    name: zabbix-agent.service
+                    enabled: true
+                    state: started
